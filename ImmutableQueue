@@ -1,0 +1,112 @@
+package com.sample;
+
+import java.util.NoSuchElementException;
+
+public class ImmutableQueue<T> implements Queue<T> {
+
+    private static class Stack<T>{
+        
+        private T head;
+        private Stack<T> tail;
+        private int size;
+
+        private Stack(){
+            this.head = null;
+            this.tail = null;
+            this.size = 0;
+        }
+        
+      
+        private Stack(T obj,Stack<T> tail){
+            this.head = obj;
+            this.tail = tail;
+            this.size = tail.size+1;
+        }
+        
+        
+        public boolean isEmpty(){
+            return this.size == 0;
+        }
+        
+      
+        public Stack<T> push(T obj){
+            return new Stack<T>(obj,this);
+        }
+        
+        
+        public Stack<T> reverseStack(){
+            Stack<T> stack = new Stack<T>();
+            Stack<T> tail = this;
+            while(!tail.isEmpty()){
+                stack = stack.push(tail.head);
+                tail = tail.tail;
+            }
+            return stack;
+        }
+    }
+    
+    private Stack<T> forward;
+    private Stack<T> reverse;
+    
+   
+    public ImmutableQueue(){
+        this.forward = new Stack<T>();
+        this.reverse = new Stack<T>();
+    }
+    
+  
+    public ImmutableQueue(Stack<T> forward,Stack<T> reverse){
+        this.forward = forward;
+        this.reverse = reverse;
+    }
+    
+   
+    public Queue<T> enQueue(T object){
+        if(object!=null) {
+            return new ImmutableQueue<T>(this.forward.push(object),this.reverse);
+        }
+        throw new IllegalArgumentException();
+    }
+    
+   
+    private void forwardToReverse(){
+        this.reverse= this.forward.reverseStack();
+        this.forward = new Stack<T>();
+    }
+
+    
+    public Queue<T> deQueue(){
+        if(this.isEmpty())
+            throw new NoSuchElementException();
+        if(!this.reverse.isEmpty()){
+            return new ImmutableQueue<T>(this.forward,this.reverse.tail);
+        }else{
+            return new ImmutableQueue<T>(new Stack<T>(),this.forward.reverseStack().tail);
+        }        
+    }
+    
+    
+    public T head(){
+        if (this.isEmpty())
+            throw new NoSuchElementException();
+        if (this.reverse.isEmpty())
+            forwardToReverse();
+        return this.reverse.head;
+    };
+    
+   
+    public T tail(){
+        if (this.isEmpty())
+            throw new NoSuchElementException();
+        if (this.forward.isEmpty()){
+            return this.reverse.reverseStack().head;
+        } else {
+            return this.forward.head;
+        }
+    }
+    
+   
+    public boolean isEmpty(){
+        return this.forward.size + this.reverse.size == 0;
+    };
+}
